@@ -39,6 +39,7 @@ contacts <- list(
 length(contacts)
 
 # lapply
+lapply(contacts, function(x) x$email)
 
 # unlist
 unlist(contacts)
