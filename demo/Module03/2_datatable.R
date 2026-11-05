@@ -55,20 +55,77 @@ df_deaths_added[, deaths2 := deaths^2]
 
 # 4. join -----------------------------------------------------------------
 # merge deaths and population (which join is merge by default?)
+df_combined <- merge(
+  df_deaths,
+  df_population,
+  by = c("location_id", "age_group_id", "sex_id")
+)
+df_combined[, mortality_rate := deaths / population]
 
 # what if there are columns with the same name: suffixes
+df_deaths_second <- copy(df_deaths)
+df_combined <- merge(
+  df_deaths,
+  df_deaths_second,
+  by = c("location_id", "age_group_id", "sex_id"),
+  suffixes = c("", "_second")
+)
 
 # what if the number of rows are different: all.x, all.y, all
+df_deaths_extra <- data.table(
+  location_id = 6,
+  age_group_id = 1,
+  sex_id = 1,
+  deaths = 5
+)
+df_deaths_added <- rbind(df_deaths, df_deaths_extra)
+
+df_combined <- merge(
+  df_deaths_added,
+  df_population,
+  by = c("location_id", "age_group_id", "sex_id"),
+  all = TRUE
+)
 
 # what if there are multiple matches?
+df_1 = data.table(
+  index = c(1, 1, 2, 2),
+  value = c(1, 2, 3, 4)
+)
+
+df_2 = data.table(
+  index = c(1, 1, 2),
+  meta_info = c("a", "b", "c")
+)
+
+df_combined <- merge(
+  df_1, df_2, by = "index"
+)
 
 # what if the names you try to match are different: by.x, by.y
+df_1 = data.table(
+  index_1 = c(1, 1, 2, 2),
+  value = c(1, 2, 3, 4)
+)
 
+df_2 = data.table(
+  index_2 = c(1, 2),
+  meta_info = c("a", "c")
+)
+
+df_combined <- merge(
+  df_1, df_2, by.x = "index_1", by.y = "index_2"
+)
 
 # 5. group and summarize ---------------------------------------------------
 # sum deaths by location_id, then by location_id and age_group_id
+df_group <- df_deaths[, list(deaths_sum = sum(deaths)), by = c("location_id", "age_group_id")]
 
 # sum several columns at once with lapply(.SD, ...) and .SDcols
+df_combined <- merge(
+  df_deaths, df_population, by = c("location_id", "age_group_id", "sex_id")
+)
+df_group <- df_combined[, lapply(.SD, sum), by = "location_id"]
 
 
 # 6. chaining ---------------------------------------------------------------
