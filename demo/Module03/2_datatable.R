@@ -1,0 +1,89 @@
+# data.table exercise
+# ===================
+# install.packages("data.table")
+setwd("~/Documents/teaching/HMS520/Autumn2026/HMS520-Autumn2026/demo/Module03/")
+library("data.table")
+
+df_population <- fread("population.csv")
+df_deaths <- fread("deaths.csv")
+df_hours <- fread("hours.csv")
+df_pay <- fread("pay.csv")
+
+# 1. subset ---------------------------------------------------------------
+# subset rows: i expression
+# - rows with location_id equal to 1
+df_deaths_sub <- df_deaths[location_id == 1]
+# - rows with deaths greater than 100
+df_deaths_sub <- df_deaths[deaths > 100]
+# - rows that satisfy both conditions
+df_deaths_sub <- df_deaths[(location_id == 1) & (deaths > 100)]
+
+# how to filter out all rows with NAs: complete.cases
+df_deaths_sub <- df_deaths[complete.cases(sex_id, location_id, age_group_id)]
+
+# subset cols: j expression
+# - a vector of column names
+col_names <- names(df_deaths)
+df_deaths_sub <- df_deaths[, c("location_id", "age_group_id")]
+# - a list of column "variables" (list or .())
+df_deaths_sub <- df_deaths[, list(location_id, age_group_id)]
+df_deaths_sub <- df_deaths[, .(location_id, age_group_id)]
+# - a variable holding the column names (with = FALSE, or ..)
+col_names <- c("location_id", "age_group_id")
+df_deaths_sub <- df_deaths[, col_names, with = FALSE]
+df_deaths_sub <- df_deaths[, ..col_names]
+# - .SD + .SDcols
+df_deaths_sub <- df_deaths[, .SD, .SDcols = col_names]
+
+# 2. modify ---------------------------------------------------------------
+# order rows: order() inside the i expression (- for descending)
+df_deaths_ordered <- df_deaths[order(-deaths)]
+
+# rename columns: j expression, setnames (in place!)
+df_deaths_renamed <- df_deaths[, .(age = age_group_id)]
+df_deaths_renamed <- copy(df_deaths)
+setnames(df_deaths_renamed, c("age_group_id"), c("age"))
+
+# 3. add ------------------------------------------------------------------
+# add columns: j expression with := (remember copy() first if you
+# do not want to change the original)
+df_deaths_added <- copy(df_deaths)
+df_deaths_added[, deaths2 := deaths^2]
+
+# combine data tables: rbind, cbind
+
+
+# 4. join -----------------------------------------------------------------
+# merge deaths and population (which join is merge by default?)
+
+# what if there are columns with the same name: suffixes
+
+# what if the number of rows are different: all.x, all.y, all
+
+# what if there are multiple matches?
+
+# what if the names you try to match are different: by.x, by.y
+
+
+# 5. group and summarize ---------------------------------------------------
+# sum deaths by location_id, then by location_id and age_group_id
+
+# sum several columns at once with lapply(.SD, ...) and .SDcols
+
+
+# 6. chaining ---------------------------------------------------------------
+# filter location 1 and add log_deaths by chaining [][]
+
+# compute the average death rate for locations 1, 2, 3, 4 and
+# rank the data table by descending order of the death rate
+
+
+# 7. pivot ----------------------------------------------------------------
+# melt df_hours longer: one row per project and employee
+
+# compute how much we pay each employee
+# (merge df_pay, add pay with :=, summarize by employee)
+
+# dcast wider back: one column per employee
+
+# which religion earns the most? (tidyr::relig_income)
