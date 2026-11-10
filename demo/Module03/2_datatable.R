@@ -137,10 +137,57 @@ df_group <- df_combined[, lapply(.SD, sum), by = "location_id"]
 
 # 7. pivot ----------------------------------------------------------------
 # melt df_hours longer: one row per project and employee
+df_hours_long <- melt(
+  df_hours,
+  id.vars = "project",
+  measure.vars = c("A", "B", "C", "D"),
+  variable.name = "employee",
+  value.name = "hours"
+)
 
 # compute how much we pay each employee
 # (merge df_pay, add pay with :=, summarize by employee)
+df_combined <- merge(
+  df_hours_long,
+  df_pay,
+  all = TRUE
+)
+df_combined[, pay := hours * dollar_per_hour]
+df_pay_employee <- df_combined[, .(employee_pay = sum(pay)), by = "project"]
 
 # dcast wider back: one column per employee
+df_hours_orig <- dcast(
+  df_hours_long,
+  project ~ employee,
+  value.var = "hours"
+)
 
 # which religion earns the most? (tidyr::relig_income)
+install.packages("tidyr")
+library("tidyr")
+
+View(relig_income)
+class(relig_income)
+dt_relig_income <- as.data.table(relig_income)
+
+valid_income_cols <- names(dt_relig_income)
+valid_income_cols <- valid_income_cols[!(valid_income_cols %in% c("religion", "Don't know/refused"))]
+
+dt_long <- melt(
+  dt_relig_income,
+  id.vars = "religion",
+  measure.vars = valid_income_cols,
+  variable.name = "income",
+  value.name = "count"
+)
+
+dt_long[, total_count := sum(count), by = "religion"]
+dt_long[, prop := count / total_count]
+
+dt_wide <- dcast(
+  dt_long,
+  religion ~ income,
+  value.var = "prop"
+)
+
+View(dt_wide[order(-`>150k`)])
